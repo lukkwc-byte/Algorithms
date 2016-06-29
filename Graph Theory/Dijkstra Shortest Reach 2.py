@@ -1,40 +1,55 @@
-def updateQ(queue, item):
-    lis = []
-    while not queue.empty():
-        elem = queue.get()
-        if elem[0] != item[0]:
-            lis.append(elem)
-    lis.append(item)
-    for elem in lis:
-        queue.put(elem)
-    return queue
+import heapq
 
-import queue as q
+class PriorityQ:
+    def __init__(self):
+        self.queue = []
+        self.index = 0
+    
+    def isEmpty(self):
+        return self.queue == []
+    
+    def push(self, item, priority):
+        heapq.heappush(self.queue, (-priority, self.index, item))
+        self.index += 1
+    
+    def pop(self):
+        ret = heapq.heappop(self.queue)   
+        return (ret[2], -ret[0])
+    
+    def __str__(self):
+        return(str(self.queue))
+    
+    def update(self, existing_Item, new_Priority):
+        for i, tupl in enumerate(self.queue):
+            priority, index, item = tupl
+            priority = -priority
+            if item == existing_Item:
+                self.queue.pop(i)
+                self.push(existing_Item, new_Priority)
+                break
+
 def dijkstraBFS(N, edges, start):
-    queue = q.PriorityQueue()
+    q = PriorityQ()
     maxDist= 400 * (N ** 2)
     
     d = [maxDist for i in range(N + 1)]
     d[start] = 0
     
-    if start > 1:
-        for i in range(1, start):
-            queue.put((i, maxDist))
+    q.push(start, 0)
     
-    queue.put((start, 0))
+    for i in range(1, N + 1):
+        if i != start:
+            q.push(i, maxDist)
     
-    for i in range(start + 1, N + 1):
-        queue.put((i, maxDist))
-    
-    while queue != []:
-        current = queue.get()
+    while not q.isEmpty():
+        current = q.pop()
         c, edgeD = current[0], current[1]
         
         neighbors = edges[c]
         for node, edgeD in neighbors.items():
             if d[c] + edgeD < d[node]:
                 d[node] = d[c] + edgeD
-                queue = updateQ(queue, (node, d[node]))
+                q.push(node, d[node])
    
     for i, dist in enumerate(d):
         if dist == maxDist:
